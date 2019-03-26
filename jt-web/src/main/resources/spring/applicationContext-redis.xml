@@ -1,0 +1,25 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+	
+	
+	<!-- spring整合redis
+	注意：若注入第三方的类是通过构造函数的方式，那么需提供源码，需maven中勾选源码下载
+	不然通过name注入 需用参数arg0,arg1...
+	解决方案：
+	不提供源码 用index 是构造函数参数的位置,从0开始
+	 -->
+	<bean id="jedis" class="redis.clients.jedis.Jedis">
+	<constructor-arg name="host" value="${redis.host}" />
+	<constructor-arg name="port" value="${redis.port}"/>
+	</bean>
+	</beans>

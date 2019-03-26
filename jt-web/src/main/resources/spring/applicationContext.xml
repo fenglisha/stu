@@ -1,0 +1,90 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+	
+	<!-- 1.配置包扫描  自动扫描包里面的所有文件和子包-->
+	<context:component-scan base-package="com.jt"/>
+	<!-- 2.配置数据源  性能最好的数据源了-->
+	<!-- 2.1导入pro配置文件  有3种方式
+	第一种可以使用通配符*，所以可以加载全部的，
+	但有的需加载，有的不需加载，
+	用bean配置的方式加载，里面是个list参数，可配置加载配置文件的参数
+	
+	用	<util:property-path path=""/>方式取值用#，上面用通配符方式用$
+	-->
+	<!-- <context:property-placeholder location="classpath:/property/jdbc.properties"/> -->
+
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	<property name="locations">
+	<list>
+	<value>classpath:/property/jdbc.properties</value>
+	<value>classpath:/property/redis.properties</value>
+	<value>classpath:/property/httpclient.properties</value>
+	</list>
+	</property>
+	</bean>
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+	<property name="driverClassName" value="${jdbc.driver}"/>
+	<property name="url" value="${jdbc.url}"/>
+	<property name="username" value="${jdbc.username}"/>
+	<property name="password" value="${jdbc.password}"/>
+	</bean>
+	
+	
+	  <!-- 3.配置事务控制 -->
+	  <!-- 3.0打开事务注解开关 -->
+	<tx:annotation-driven/>
+	<!-- 3.1定义事务管理器(数据源事务管理器) -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 3.2定义事务策略 -->
+	<!-- 
+	propagation="REQUIRED" 执行该操作，必须添加事务；
+	propagation="SUPPORTS" 事务支持的，原来的操作有事务，则添加事务，原来的操作无事务，则不添加事务，
+	           eg:在save方法中，可能调用查找的方法，save方法有事务，则该操作也有事务，不然save中有段代码没事务，就不知道怎么办了；
+	propagation="NEVER" 从不添加事务
+	propagation="REQUIRES_NEW" 新创建一个事务
+	read-only="true" 该操作只读；
+	 -->
+	<tx:advice id="txadvice" transaction-manager="transactionManager" >
+	<tx:attributes>
+	<tx:method name="save*" propagation="REQUIRED"/>
+	<tx:method name="delete*" propagation="REQUIRED"/>
+	<tx:method name="update*" propagation="REQUIRED"/>
+	<tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+	<tx:method name="*" propagation="SUPPORTS" read-only="true"/>
+	</tx:attributes>
+	</tx:advice>
+	
+	<!-- 定义事务切面 -->
+	<!-- 
+             元素顺序
+     (pointcut*, advisor*, aspect*)
+     expression 切入点表达式有2中
+     1，whthin（包.类） 类中的所有方法 粗粒度
+     2.execution(返回值  包.类.方法(参数，int,string))
+     支持统配符 *任意值   ..任意个数（也就包含个数）
+     
+     < aop:aspect>：定义切面（切面包括通知和切点）应用在日志上
+     <aop:advisor>：定义通知器（通知器跟切面一样，也包括通知和切点）
+     应用在事务上
+     事务通知：什么方法应用什么事务；
+     但事务通知必须通过aop思想真正的应用；我认为事务的通知类型默认为环绕；
+
+	 -->
+	<aop:config>
+	<aop:pointcut expression="execution(* com.jt.web.service..*.*(..))" id="pc"/>
+	<aop:advisor advice-ref="txadvice" pointcut-ref="pc"/>
+	</aop:config>
+	
+	</beans>

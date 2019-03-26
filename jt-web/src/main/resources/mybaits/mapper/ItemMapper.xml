@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 标识映射文件  -->
+<mapper namespace="com.jt.manage.mapper.ItemMapper">
+
+<!-- 注意：全部用小写，因为linux是识别大小写字母的，防止windows上执行成功，但在Linux上出问题 -->
+<select id="queryItemByPage" resultType="Item">
+select * from tb_item order by updated desc limit #{start},#{size};
+</select>
+</mapper>
